@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Check, Clapperboard, Copy, Palette, Sparkles } f
 
 type Plan = { animal: string; traits: string[]; color: string; prop: string; twist: string; character: string; action: string; line: string; style: string };
 const initial: Plan = { animal: '', traits: [], color: '', prop: '', twist: '', character: '', action: '손을 작게 흔든다', line: '', style: '말랑한 3D 캐릭터' };
-const animals = [['🐱', '고양이'], ['🦦', '수달'], ['🐰', '토끼'], ['🐻', '곰'], ['🦊', '여우'], ['🐧', '펭귄'], ['🥔', '감자'], ['☁️', '구름'], ['🤖', '로봇']];
+const animals = [['🐱', '고양이'], ['🦦', '수달'], ['🐰', '토끼'], ['🐻', '곰'], ['🦊', '여우'], ['🐧', '펭귄'], ['🦖', '공룡'], ['🥔', '감자'], ['☁️', '구름'], ['🤖', '로봇']];
 const traits = ['낯을 가리는', '장난기 많은', '느긋한', '호기심 많은', '다정한', '엉뚱한', '열정적인', '꼼꼼한'];
 const colors = [['하늘색', '#99d8ee'], ['보라색', '#bba7eb'], ['연두색', '#c9e79c'], ['분홍색', '#f4b9cd'], ['노란색', '#f6dc7d'], ['검정', '#383c39']];
 const props = ['🎧 헤드폰', '🎮 게임기', '📒 스케치북', '🍪 간식', '🎒 가방', '📷 카메라'];
