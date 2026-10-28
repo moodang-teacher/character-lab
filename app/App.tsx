@@ -53,7 +53,7 @@ export default function App() {
       <h1>나의 취향이<br />하나의 <em>캐릭터</em>로.</h1>
       <p className="lead">그림을 잘 그리지 않아도 괜찮아.<br />몇 가지 선택으로, 나를 닮은 캐릭터를 기획해 봐.</p>
       <div className="tags"><span>✦ 특징 고르기</span><span>✦ 프롬프트 만들기</span><span>✦ 직접 복사하기</span></div>
-      <div className="entry panel"><h2>오늘의 연구 시작하기 <span>01</span></h2><p className="hint">로그인이나 개인정보 입력 없이 바로 시작할 수 있어요.</p><button className="primary" onClick={() => setStep(1)}>내 캐릭터 기획하기 <ArrowRight size={19} /></button></div>
+      <button className="primary heroCta" onClick={() => setStep(1)}>내 캐릭터 기획하기 <ArrowRight size={19} /></button>
     </section><section className="heroArt" aria-label="캐릭터 기획 예시"><div className="orbit o1" /><div className="orbit o2" /><div className="floatTag topTag">성격 <b>조용하지만 호기심 가득</b></div><div className="mascot">🦦<span>🎧</span></div><div className="spark s1">✳</div><div className="spark s2">✦</div><div className="floatTag bottomTag">반전 매력 <b>게임 얘기엔 누구보다 신남!</b></div><div className="artCaption"><span>MEET YOUR ALTER EGO</span><b>상상 속의 나를 만나 봐.</b></div></section></div> : <>
       <div className="workHeading"><div><div className="eyebrow">MY CHARACTER PLAN</div><h1>{step === 1 ? '어떤 친구를 만들어 볼까?' : step === 2 ? '취향을 한 스푼 더해 봐.' : '이제, 세상에 소개할 차례.'}</h1><p className="lead">나와 닮아도, 내가 되고 싶은 모습이어도 좋아.</p></div><span className="stepNum">0{step} <small>/ 03</small></span></div>
       <div className="progress">{['모습과 성격', '색상과 매력', '이름과 프롬프트'].map((label, i) => <span className={step >= i + 1 ? 'active' : ''} key={label}><b>{i + 1}</b>{label}</span>)}</div>
