@@ -33,9 +33,11 @@ GitHub Pages에 맞춰 아래 기능과 의존성을 앱에서 제거했다.
 - 기존 Cloudflare 스타터의 일부 미사용 파일은 로컬에 남아 있으나 `.gitignore`로 Git 저장소와 빌드에서 제외한다.
 - 로컬 TypeScript 검사와 정적 빌드를 통과했다.
 
-## 배포 전에 할 일
+## 배포 상태
 
-- GitHub 저장소가 만들어지면 로컬 Git 저장소를 연결하고 코드를 푸시한다.
-- GitHub Pages 배포 설정을 추가하고 저장소 하위 경로에서 화면·에셋·새로고침을 확인한다.
+- GitHub 저장소: https://github.com/moodang-teacher/character-lab
+- 공개 사이트: https://moodang-teacher.github.io/character-lab/
+- `main` 브랜치에 푸시하면 `.github/workflows/deploy-pages.yml`이 Vite 정적 빌드를 실행하고 `dist/`를 GitHub Pages에 배포한다.
+- Pages 게시 방식은 GitHub Actions로 설정했다. 배포 HTML의 JS·CSS 경로와 JS 응답을 확인했다.
 
-GitHub Pages 배포는 아직 수행하지 않았다.
+처음에는 Pages가 `main`의 원본 `index.html`을 그대로 제공해 빈 화면이 발생했다. 빌드 결과물 배포로 전환해 해결했다.
