@@ -1,0 +1,27 @@
+# Dependencies and build output
+node_modules/
+dist/
+
+# Local settings
+.env*
+*.local
+
+# Unused files retained from the former Cloudflare starter
+.openai/
+components/
+db/
+drizzle/
+examples/
+hooks/
+lib/
+scripts/
+vendor/
+worker/
+
+# Tool state and archives
+.sites-runtime/
+.vinext/
+.wrangler/
+outputs/
+work/
+.DS_Store
