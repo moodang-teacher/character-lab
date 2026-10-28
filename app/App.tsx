@@ -19,6 +19,17 @@ export default function App() {
   const [p, setP] = useState<Plan>(initial);
   const [actionChoice, setActionChoice] = useState(initial.action);
   const [customAction, setCustomAction] = useState('');
+  const [animalChoice, setAnimalChoice] = useState('');
+  const [customAnimal, setCustomAnimal] = useState('');
+  const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
+  const [customTraitEnabled, setCustomTraitEnabled] = useState(false);
+  const [customTrait, setCustomTrait] = useState('');
+  const [colorChoice, setColorChoice] = useState('');
+  const [customColor, setCustomColor] = useState('#7c5ce0');
+  const [propChoice, setPropChoice] = useState('');
+  const [customProp, setCustomProp] = useState('');
+  const [twistChoice, setTwistChoice] = useState('');
+  const [customTwist, setCustomTwist] = useState('');
   const [ip, setIp] = useState('');
   const [vp, setVp] = useState('');
   const [copied, setCopied] = useState('');
@@ -26,8 +37,15 @@ export default function App() {
   function update<K extends keyof Plan>(key: K, value: Plan[K]) { setP(current => ({ ...current, [key]: value })); }
   function changeAction(value: string) { const action = value.trim(); setP(current => ({ ...current, action })); if (vp) setVp(action ? videoText({ ...p, action }) : ''); }
   async function copy(text: string, key: string) { try { await navigator.clipboard.writeText(text); setCopied(key); window.setTimeout(() => setCopied(''), 1800); } catch { setError('복사가 차단되었습니다. 텍스트를 직접 선택해 복사해 주세요.'); } }
-  const valid = step === 1 ? !!p.animal && p.traits.length > 0 : step === 2 ? !!p.color && !!p.prop && !!p.twist : !!p.character.trim() && !!p.action.trim();
-  const mascot = animals.find(([, animal]) => animal === p.animal)?.[0] || '🦦';
+  const currentTraits = [...selectedTraits, ...(customTraitEnabled && customTrait.trim() ? [customTrait.trim()] : [])];
+  const currentPlan = { ...p, traits: currentTraits };
+  const traitCount = selectedTraits.length + Number(customTraitEnabled);
+  const appearanceValid = !!p.animal.trim() && currentTraits.length > 0 && (!customTraitEnabled || !!customTrait.trim());
+  const detailsValid = !!p.color && !!p.prop.trim() && !!p.twist.trim();
+  const valid = step === 1 ? appearanceValid : step === 2 ? detailsValid
+    : appearanceValid && detailsValid && !!p.character.trim() && !!p.action.trim();
+  const mascot = animals.find(([, animal]) => animal === p.animal)?.[0] || (animalChoice === 'custom' ? '✳' : '🦦');
+  const previewColor = colorChoice === 'custom' ? customColor : colors.find(([color]) => color === p.color)?.[1] || '#dce7c9';
   return <>
     <header><a className="brand" href="./">✳ <span>캐릭터 연구소<small>CHARACTER LAB</small></span></a><span className="lesson">AI 원데이클래스</span></header>
     <main>{step === 0 ? <div className="hero"><section>
@@ -40,16 +58,44 @@ export default function App() {
       <div className="workHeading"><div><div className="eyebrow">MY CHARACTER PLAN</div><h1>{step === 1 ? '어떤 친구를 만들어 볼까?' : step === 2 ? '취향을 한 스푼 더해 봐.' : '이제, 세상에 소개할 차례.'}</h1><p className="lead">나와 닮아도, 내가 되고 싶은 모습이어도 좋아.</p></div><span className="stepNum">0{step} <small>/ 03</small></span></div>
       <div className="progress">{['모습과 성격', '색상과 매력', '이름과 프롬프트'].map((label, i) => <span className={step >= i + 1 ? 'active' : ''} key={label}><b>{i + 1}</b>{label}</span>)}</div>
       <div className="workGrid"><section className="panel formPanel">
-        {step === 1 ? <><h2>01. 어떤 모습이면 좋겠어?</h2><p className="hint">캐릭터의 바탕이 될 동물이나 사물 하나를 골라 줘.</p><div className="animalGrid">{animals.map(([emoji, animal]) => <button aria-pressed={p.animal === animal} className={'choice animal ' + (p.animal === animal ? 'selected' : '')} key={animal} onClick={() => update('animal', animal)}><span>{emoji}</span>{animal}{p.animal === animal && <Check size={15} />}</button>)}</div><h2>02. 나를 표현하는 성격은?</h2><p className="hint">한 개 또는 두 개를 골라 줘. <b>{p.traits.length}/2</b></p><div className="chips">{traits.map(trait => <button aria-pressed={p.traits.includes(trait)} className={'choice ' + (p.traits.includes(trait) ? 'selected' : '')} key={trait} onClick={() => update('traits', p.traits.includes(trait) ? p.traits.filter(value => value !== trait) : p.traits.length < 2 ? [...p.traits, trait] : p.traits)}>{trait}</button>)}</div></> : step === 2 ? <><h2>03. 대표 색상은?</h2><div className="colors">{colors.map(([color, hex]) => <button aria-pressed={p.color === color} className={'choice ' + (p.color === color ? 'selected' : '')} key={color} onClick={() => update('color', color)}><i style={{ background: hex }} />{color}</button>)}</div><h2>04. 꼭 가지고 다니는 소품은?</h2><div className="chips">{props.map(prop => <button aria-pressed={p.prop === prop} className={'choice ' + (p.prop === prop ? 'selected' : '')} key={prop} onClick={() => update('prop', prop)}>{prop}</button>)}</div><h2>05. 알고 보면 이런 매력이!</h2><div className="twists">{twists.map(twist => <button aria-pressed={p.twist === twist} className={'choice ' + (p.twist === twist ? 'selected' : '')} key={twist} onClick={() => update('twist', twist)}>{twist}</button>)}</div></> : <>
+        {step === 1 ? <>
+          <h2>01. 어떤 모습이면 좋겠어?</h2>
+          <p className="hint">캐릭터의 바탕이 될 사람, 동물이나 사물을 골라 줘.</p>
+          <div className="animalGrid">
+            {[...animals, ['🧑', '사람']].map(([emoji, animal]) => <button aria-pressed={animalChoice === animal} className={'choice animal ' + (animalChoice === animal ? 'selected' : '')} key={animal} onClick={() => { setAnimalChoice(animal); update('animal', animal); }}><span>{emoji}</span>{animal}{animalChoice === animal && <Check size={15} />}</button>)}
+            <button aria-pressed={animalChoice === 'custom'} className={'choice animal ' + (animalChoice === 'custom' ? 'selected' : '')} onClick={() => { setAnimalChoice('custom'); update('animal', customAnimal.trim()); }}><span>✏️</span>직접 작성</button>
+          </div>
+          {animalChoice === 'custom' && <label className="customField">원하는 모습 *<input autoFocus value={customAnimal} maxLength={60} placeholder="예: 마법사, 용, 작은 별" onChange={e => { setCustomAnimal(e.target.value); update('animal', e.target.value.trim()); }} /></label>}
+          <h2>02. 나를 표현하는 성격은?</h2>
+          <p className="hint">한 개 또는 두 개를 골라 줘. <b>{traitCount}/2</b></p>
+          <div className="chips">
+            {traits.map(trait => <button aria-pressed={selectedTraits.includes(trait)} className={'choice ' + (selectedTraits.includes(trait) ? 'selected' : '')} key={trait} onClick={() => setSelectedTraits(current => current.includes(trait) ? current.filter(value => value !== trait) : current.length + Number(customTraitEnabled) < 2 ? [...current, trait] : current)}>{trait}</button>)}
+            <button aria-pressed={customTraitEnabled} disabled={!customTraitEnabled && selectedTraits.length >= 2} className={'choice ' + (customTraitEnabled ? 'selected' : '')} onClick={() => setCustomTraitEnabled(value => !value)}>✏️ 직접 작성</button>
+          </div>
+          {customTraitEnabled && <label className="customField">나만의 성격 *<input autoFocus value={customTrait} maxLength={60} placeholder="예: 새로운 것을 발견하면 신나는" onChange={e => setCustomTrait(e.target.value)} /></label>}
+        </> : step === 2 ? <>
+          <h2>03. 대표 색상은?</h2>
+          <div className="colors">
+            {colors.map(([color, hex]) => <button aria-pressed={colorChoice === color} className={'choice ' + (colorChoice === color ? 'selected' : '')} key={color} onClick={() => { setColorChoice(color); update('color', color); }}><i style={{ background: hex }} />{color}</button>)}
+            <button aria-pressed={colorChoice === 'custom'} className={'choice ' + (colorChoice === 'custom' ? 'selected' : '')} onClick={() => { setColorChoice('custom'); update('color', customColor); }}><i style={{ background: customColor }} />직접 선택</button>
+          </div>
+          {colorChoice === 'custom' && <label className="customField colorField">원하는 색상<input type="color" value={customColor} onChange={e => { setCustomColor(e.target.value); update('color', e.target.value); }} /><span>{customColor.toUpperCase()}</span></label>}
+          <h2>04. 꼭 가지고 다니는 소품은?</h2>
+          <div className="chips">{props.map(prop => <button aria-pressed={propChoice === prop} className={'choice ' + (propChoice === prop ? 'selected' : '')} key={prop} onClick={() => { setPropChoice(prop); update('prop', prop); }}>{prop}</button>)}<button aria-pressed={propChoice === 'custom'} className={'choice ' + (propChoice === 'custom' ? 'selected' : '')} onClick={() => { setPropChoice('custom'); update('prop', customProp.trim()); }}>✏️ 직접 작성</button></div>
+          {propChoice === 'custom' && <label className="customField">나만의 소품 *<input autoFocus value={customProp} maxLength={60} placeholder="예: 작은 망원경" onChange={e => { setCustomProp(e.target.value); update('prop', e.target.value.trim()); }} /></label>}
+          <h2>05. 알고 보면 이런 매력이!</h2>
+          <div className="twists">{twists.map(twist => <button aria-pressed={twistChoice === twist} className={'choice ' + (twistChoice === twist ? 'selected' : '')} key={twist} onClick={() => { setTwistChoice(twist); update('twist', twist); }}>{twist}</button>)}<button aria-pressed={twistChoice === 'custom'} className={'choice ' + (twistChoice === 'custom' ? 'selected' : '')} onClick={() => { setTwistChoice('custom'); update('twist', customTwist.trim()); }}>✏️ 직접 작성</button></div>
+          {twistChoice === 'custom' && <label className="customField">나만의 반전 매력 *<input autoFocus value={customTwist} maxLength={120} placeholder="예: 겁이 많지만 친구를 위해 용기를 낸다" onChange={e => { setCustomTwist(e.target.value); update('twist', e.target.value.trim()); }} /></label>}
+        </> : <>
           <h2>06. 이름과 자기소개 정하기</h2><div className="entryFields"><label>캐릭터 이름 *<input value={p.character} maxLength={20} placeholder="예: 수줍수달" onChange={e => update('character', e.target.value)} /></label><label>이미지 스타일<select value={p.style} onChange={e => update('style', e.target.value)}>{styles.map(style => <option key={style}>{style}</option>)}</select></label></div>
           <label>동작 하나<select value={actionChoice} onChange={e => { const value = e.target.value; setActionChoice(value); changeAction(value === 'custom' ? customAction : value); }}>{actions.map(action => <option key={action}>{action}</option>)}<option value="custom">직접 작성하기</option></select></label>
           {actionChoice === 'custom' && <><label>나만의 동작 *<input value={customAction} maxLength={120} placeholder="예: 스케치북을 펼쳐 그림을 보여 준다" onChange={e => { setCustomAction(e.target.value); changeAction(e.target.value); }} /></label><p className="hint">캐릭터가 할 동작 하나를 짧게 적어 줘.</p></>}
           <label>짧은 대사 한 문장<input maxLength={60} value={p.line} placeholder="예: 안녕! 게임 얘기라면 나도 끼워 줘." onChange={e => update('line', e.target.value)} /></label>
-          <button className="secondary" disabled={!valid} onClick={() => { setIp(imageText(p)); setVp(videoText(p)); }}><Sparkles size={16} /> 선택한 특징으로 프롬프트 만들기</button><p className="hint">생성된 문장에서 마음에 안 드는 부분을 직접 고쳐 보세요.</p>
+          <button className="secondary" disabled={!valid} onClick={() => { setIp(imageText(currentPlan)); setVp(videoText(currentPlan)); }}><Sparkles size={16} /> 선택한 특징으로 프롬프트 만들기</button><p className="hint">생성된 문장에서 마음에 안 드는 부분을 직접 고쳐 보세요.</p>
           {ip && <><div className="sectionHead"><h2><Palette size={17} /> 이미지 프롬프트</h2><button className="textButton" onClick={() => copy(ip, 'image')}><Copy size={15} />{copied === 'image' ? '복사 완료' : '복사'}</button></div><textarea aria-label="이미지 프롬프트" value={ip} onChange={e => setIp(e.target.value)} rows={6} /><div className="sectionHead"><h2><Clapperboard size={17} /> 영상 프롬프트</h2><button className="textButton" onClick={() => copy(vp, 'video')}><Copy size={15} />{copied === 'video' ? '복사 완료' : '복사'}</button></div><textarea aria-label="영상 프롬프트" value={vp} onChange={e => setVp(e.target.value)} rows={5} /><p className="hint">이미지 프롬프트는 이미지 생성 도구에 붙여 넣으세요. 영상 프롬프트는 완성한 이미지와 함께 사용할 수 있어요.</p></>}
         </>}
         <div className="navigation"><button className="secondary" onClick={() => { setError(''); setStep(value => value - 1); }}><ArrowLeft size={17} /> 이전</button>{step < 3 && <button disabled={!valid} className="primary" onClick={() => setStep(value => value + 1)}>다음 단계 <ArrowRight size={18} /></button>}</div>
-      </section><aside><div className="characterCard"><div className="cardTop">MY CHARACTER NOTE <span>✦</span></div><div className="previewEmoji" style={{ background: colors.find(([color]) => color === p.color)?.[1] || '#dce7c9' }}>{mascot}</div><small>캐릭터 기획 미리보기</small><h2>{p.character || '아직 이름 없는 친구'}</h2><p>{p.traits.length ? p.traits.join(' · ') : '어떤 성격을 갖게 될까?'}</p><div className="cardLine" /><dl><dt>모습</dt><dd>{p.animal || '선택 전'}</dd><dt>색상</dt><dd>{p.color || '선택 전'}</dd><dt>소품</dt><dd>{p.prop || '선택 전'}</dd></dl><div className="twistPreview">✦ 반전 매력<p>{p.twist || '나만의 매력을 더해 줘.'}</p></div></div><p className="asideNote">입력 내용은 저장되지 않아요. 필요한 프롬프트는 페이지를 떠나기 전에 복사해 주세요.</p></aside></div>
+      </section><aside><div className="characterCard"><div className="cardTop">MY CHARACTER NOTE <span>✦</span></div><div className="previewEmoji" style={{ background: previewColor }}>{mascot}</div><small>캐릭터 기획 미리보기</small><h2>{p.character || '아직 이름 없는 친구'}</h2><p>{currentTraits.length ? currentTraits.join(' · ') : '어떤 성격을 갖게 될까?'}</p><div className="cardLine" /><dl><dt>모습</dt><dd>{p.animal || '선택 전'}</dd><dt>색상</dt><dd>{p.color || '선택 전'}</dd><dt>소품</dt><dd>{p.prop || '선택 전'}</dd></dl><div className="twistPreview">✦ 반전 매력<p>{p.twist || '나만의 매력을 더해 줘.'}</p></div></div><p className="asideNote">입력 내용은 저장되지 않아요. 필요한 프롬프트는 페이지를 떠나기 전에 복사해 주세요.</p></aside></div>
     </>}{error && <div className="error" role="alert">{error}</div>}<footer><span>✳ CHARACTER LAB</span><span>생각하는 건 나, 표현을 돕는 건 AI.</span></footer></main>
   </>;
 }
